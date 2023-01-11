@@ -1,6 +1,7 @@
 # Airflow S3 XCom Backend
 
 Custom XCom backend implementation for Airflow, with data serialization to S3.
+( Fork of original project https://github.com/Pilotcore/airflow-xcom-s3 )
 
 ## About
 
