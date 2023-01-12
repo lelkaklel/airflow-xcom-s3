@@ -10,6 +10,7 @@ from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 class S3XComBackend(BaseXCom):
     PREFIX = "xcom_s3"
     BUCKET_NAME = os.environ.get("S3_XCOM_BUCKET_NAME")
+    S3_XCOM_CONN_NAME = os.environ.get("S3_XCOM_CONN_NAME")
 
     @staticmethod
     def _assert_s3_backend():
@@ -20,7 +21,7 @@ class S3XComBackend(BaseXCom):
     def serialize_value(value: Any):
         if isinstance(value, pd.DataFrame):
             S3XComBackend._assert_s3_backend()
-            hook = S3Hook()
+            hook = S3Hook(S3XComBackend.S3_XCOM_CONN_NAME)
             key = f"data_{str(uuid.uuid4())}.csv"
             filename = f"{key}.csv"
             value.to_csv(filename, index=False)
