@@ -21,13 +21,13 @@ class S3XComBackend(BaseXCom):
     @staticmethod
     def serialize_value(value: Any):
         if isinstance(value, pd.DataFrame):
-            logging.debug(f'connection name: {S3XComBackend.S3_XCOM_CONN_NAME}')
-            logging.debug(f'bucket name: {S3XComBackend.BUCKET_NAME}')
-            logging.debug(f'filename: {filename}')
+            logging.info(f'connection name: {S3XComBackend.S3_XCOM_CONN_NAME}')
+            logging.info(f'bucket name: {S3XComBackend.BUCKET_NAME}')
             S3XComBackend._assert_s3_backend()
             hook = S3Hook(S3XComBackend.S3_XCOM_CONN_NAME)
             key = f"data_{str(uuid.uuid4())}.csv"
             filename = f"{key}.csv"
+            logging.info(f'filename: {filename}')
             value.to_csv(filename, index=False)
             hook.load_file(
                 filename=filename,
