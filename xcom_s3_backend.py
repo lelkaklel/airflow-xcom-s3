@@ -19,13 +19,20 @@ class S3XComBackend(BaseXCom):
             raise ValueError("Unknown bucket for S3 backend.")
 
     @staticmethod
-    def serialize_value(value: Any):
+    def serialize_value(
+        value: Any,
+        *,
+        key: str | None = None,
+        task_id: str | None = None,
+        dag_id: str | None = None,
+        run_id: str | None = None,
+        map_index: int | None = None,
+    ) -> Any:
         if isinstance(value, pd.DataFrame):
-            logging.info(f'connection name: {S3XComBackend.S3_XCOM_CONN_NAME}')
-            logging.info(f'bucket name: {S3XComBackend.BUCKET_NAME}')
             S3XComBackend._assert_s3_backend()
             hook = S3Hook(S3XComBackend.S3_XCOM_CONN_NAME)
-            key = f"data_{str(uuid.uuid4())}.csv"
+            # key = f"data_{str(uuid.uuid4())}.csv"
+            key = f"{dag_id}/{run_id}/{task_id}.csv"
             filename = f"{key}.csv"
             logging.info(f'filename: {filename}')
             value.to_csv(filename, index=False)
