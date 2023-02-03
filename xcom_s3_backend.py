@@ -1,6 +1,6 @@
 import os
 import uuid
-from io import BytesIO
+import io
 import pandas as pd
 
 from typing import Any
@@ -33,15 +33,22 @@ class S3XComBackend(BaseXCom):
             S3XComBackend._assert_s3_backend()
             hook = S3Hook(S3XComBackend.S3_XCOM_CONN_NAME)
             key = f"{dag_id}/{run_id}/{task_id}.csv"
-            logging.info(f's3 key: {key}')
-            csv_buffer = BytesIO()
-            value.to_csv(csv_buffer, index=False)
-            hook.load_file_obj(
-                file_obj=csv_buffer,
-                key=key,
-                bucket_name=S3XComBackend.BUCKET_NAME,
-                replace=True
-            )
+            logging.debug(f's3 key: {key}')
+
+            with io.BytesIO() as buffer:                                
+                buffer.write(
+                    bytes(
+                        value.to_csv(None, index=False),
+                        encoding="utf-8"
+                    )
+                )               
+                hook.load_bytes(
+                    buffer.getvalue(),
+                    key=key,
+                    bucket_name=S3XComBackend.BUCKET_NAME,
+                    replace=True
+                )
+
             value = f"{S3XComBackend.PREFIX}://{S3XComBackend.BUCKET_NAME}/{key}"
 
         return BaseXCom.serialize_value(value)
