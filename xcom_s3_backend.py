@@ -1,5 +1,6 @@
 import os
 import uuid
+from io import StringIO
 import pandas as pd
 
 from typing import Any
@@ -31,13 +32,12 @@ class S3XComBackend(BaseXCom):
         if isinstance(value, pd.DataFrame):
             S3XComBackend._assert_s3_backend()
             hook = S3Hook(S3XComBackend.S3_XCOM_CONN_NAME)
-            # key = f"data_{str(uuid.uuid4())}.csv"
             key = f"{dag_id}/{run_id}/{task_id}.csv"
-            filename = f"{key}.csv"
-            logging.info(f'filename: {filename}')
-            value.to_csv(filename, index=False)
-            hook.load_file(
-                filename=filename,
+            logging.info(f's3 key: {key}')
+            csv_buffer = BytesIO()
+            value.to_csv(csv_buffer, index=False)
+            hook.load_file_obj(
+                file_obj=csv_buffer,
                 key=key,
                 bucket_name=S3XComBackend.BUCKET_NAME,
                 replace=True
