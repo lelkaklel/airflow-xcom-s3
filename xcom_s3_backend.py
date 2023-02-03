@@ -1,6 +1,6 @@
 import os
 import uuid
-from io import StringIO
+from io import BytesIO
 import pandas as pd
 
 from typing import Any
