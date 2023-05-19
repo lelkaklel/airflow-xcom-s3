@@ -16,8 +16,10 @@ class S3XComBackend(BaseXCom):
 
     @staticmethod
     def _assert_s3_backend():
+        if S3XComBackend.S3_XCOM_CONN_NAME is None:
+            raise ValueError("Unknown S3 connection for S3 backend. You must set S3_XCOM_CONN_NAME environment variable")
         if S3XComBackend.BUCKET_NAME is None:
-            raise ValueError("Unknown bucket for S3 backend.")
+            raise ValueError("Unknown bucket for S3 backend. You must set S3_XCOM_BUCKET_NAME environment variable")
 
     @staticmethod
     def serialize_value(
@@ -59,13 +61,9 @@ class S3XComBackend(BaseXCom):
 
         if isinstance(result, str) and result.startswith(S3XComBackend.PREFIX):
             S3XComBackend._assert_s3_backend()
-            hook = S3Hook()
+            hook = S3Hook(S3XComBackend.S3_XCOM_CONN_NAME)
             key = result.replace(f"{S3XComBackend.PREFIX}://{S3XComBackend.BUCKET_NAME}/", "")
-            filename = hook.download_file(
-                key=key,
-                bucket_name=S3XComBackend.BUCKET_NAME,
-                local_path="/tmp"
-            )
-            result = pd.read_csv(filename)
+            file_bytes = hook.read_key(key, S3XComBackend.BUCKET_NAME).encode('utf-8')
+            result = pd.read_csv(io.BytesIO(file_bytes))
 
         return result
